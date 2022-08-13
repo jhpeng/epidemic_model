@@ -10,8 +10,8 @@ void kernel_linear(double alpha, double gamma, double dt, int nnode, int nedge, 
     int i_node,j_node,i_sigma,j_sigma;
 
     for(int i_edge=0;i_edge<nedge;i_edge++) {
-        i_node = edge[i_edge*2+0];
-        j_node = edge[i_edge*2+1];
+        i_node = edges[i_edge*2+0];
+        j_node = edges[i_edge*2+1];
 
         i_sigma = sigma[i_node];
         j_sigma = sigma[j_node];
