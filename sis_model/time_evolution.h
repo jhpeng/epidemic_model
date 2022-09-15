@@ -3,6 +3,17 @@
 #ifndef time_evolution_h
 #define time_evolution_h
 
+double ninfection_ave_value();
+
+double nrecover_ave_value();
+
+void ninfection_count_plus_one();
+
+void nrecover_count_plus_one();
+
+void print_ninfection();
+
+void print_nrecover();
 
 void kernel_linear(double alpha, double gamma, double dt, int nnode, int nedge, int* sigma, int* edges, gsl_rng* rng);
 
