@@ -21,7 +21,8 @@ LFLAGS	= -L/usr/local/lib
 LIBS	= -lm -lgsl -lgslcblas
 
 # define the C object files
-OBJS	=  time_evolution.o graph.o main.o
+#OBJS	=  time_evolution.o graph.o main.o
+OBJS	=  time_evolution.o graph.o equi_state.o
 
 
 #define the directory for object
