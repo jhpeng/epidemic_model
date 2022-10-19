@@ -37,25 +37,26 @@ static double order_parameter(int* sigma, int nnode) {
 
 int main() {
     double gamma=1.0;
-    double alpha=1.0;
+    double alpha=0.5000;
     double dt=0.01;
-    unsigned long int seed = 384932;
+    unsigned long int seed = 90773;
 
-    int nthermal=100000;
-    int nsample=1000;
+    //int nthermal=100000;
+    int nsample=1000000;
     int nstep=(int)(1.0/dt);
 
     gsl_rng* rng=gsl_rng_alloc(gsl_rng_mt19937);
     gsl_rng_set(rng,seed);
     
     int nnode,nedge;
-    char filename[128] = "/home/alan/Works/path_sampling/networks/jupyters/N_100.edgelist";
+    char filename[128] = "/home/alan/Works/path_sampling/networks/jupyters/kinship/N_2000/alpha_1.0000/SEED_004.edgelist";
     int* edges = read_edgelist(filename,&nnode,&nedge);
 
-    int* sigma = initial_state(nnode,0.5,0,0,rng);
+    int* sigma = initial_state(nnode,1.0,0,0,rng);
 
     double infected_ratio=0;
-    int block_size=1000;
+    int infected_number;
+    int block_size=10;
     for(int k=0;k<nsample;k++) {
         infected_ratio=0;
         for(int j=0;j<block_size;j++) {
@@ -63,10 +64,14 @@ int main() {
                 kernel_linear(alpha,gamma,dt,nnode,nedge,sigma,edges,rng);
             }
 
-            infected_ratio += order_parameter(sigma,nnode);
+            infected_number = (int)(order_parameter(sigma,nnode)*nnode);
+            infected_ratio +=  (double)infected_number/nnode;
         }
         infected_ratio = infected_ratio/block_size;
+        double infected_number_ave = infected_ratio*nnode;
 
-        printf("%.12f\n",infected_ratio);
+        printf("%.12f %.2f %d\n",infected_ratio,infected_number_ave,infected_number);
+        if(infected_number==0)
+            return 0;
     }
 }
