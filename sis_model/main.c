@@ -67,16 +67,16 @@ static double order_parameter(int* sigma, int nnode) {
     return I;
 }
 
-int main() {
-    double alpha=0.6;
-    double gamma=1.0;
-    double dt=0.01;
-    double T=20.0;
-    double p=0.05;
+int main(int argc, char** argv) {
+    double alpha=atof(argv[1]);
+    double gamma=atof(argv[2]);
+    double dt=atof(argv[3]);
+    double T=atof(argv[4]);
+    double p=atof(argv[5]);
     int nif = 10;
-    unsigned long int seed=9127933;
-    int nblock=1000;
-    int block_size=1000;
+    int nblock=atoi(argv[6]);
+    int block_size=atoi(argv[7]);
+    unsigned long int seed=atoi(argv[8]);
     int nstep=(int)(T/dt);
     int nshow=(int)(0.25/dt);
 
@@ -125,7 +125,7 @@ int main() {
             }
             
             ntrial++;
-            if(final_state(nnode,sigma,0.25)) {
+            if(final_state(nnode,sigma,p)) {
                 for(int j=0;j<n;j++) sigma_ave[j]+=temp_sigma[j];
 
                 ninfection_count_plus_one();
