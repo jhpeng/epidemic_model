@@ -5,7 +5,8 @@
 CC	= gcc
 
 # define any compile-time flags
-CFLAGS = -Wall -g -fPIC -O0 -std=c99
+#CFLAGS = -Wall -g -fPIC -O0 -std=c99
+CFLAGS = -Wall -fPIC -O3 -std=c99
 
 # define openmp flags
 OPENMP  = -fopenmp
@@ -21,8 +22,8 @@ LFLAGS	= -L/usr/local/lib
 LIBS	= -lm -lgsl -lgslcblas
 
 # define the C object files
-#OBJS	=  time_evolution.o graph.o main.o
-OBJS	=  time_evolution.o graph.o equi_state.o
+OBJS	=  time_evolution.o graph.o main.o
+#OBJS	=  time_evolution.o graph.o equi_state.o
 
 
 #define the directory for object

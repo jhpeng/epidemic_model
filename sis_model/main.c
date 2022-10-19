@@ -20,12 +20,30 @@ static int* initial_state(int nnode, double p, int n, int type, gsl_rng* rng) {
             sigma[i]=0;
             if(i<n) sigma[i]=1;
         }
+    } else if(type==2) {
+        for(int i=0;i<nnode;i++) {
+            sigma[i]=0;
+        }
+        double dis=gsl_rng_uniform_pos(rng)*nnode;
+        sigma[(int)dis]=1;
     }
 
     return sigma;
 }
 
-static void print_state(int* sigma, int nnode) {
+static int final_state(int nnode, int* sigma, double p) {
+    int check=0;
+    int n=0;
+    for(int i=0;i<nnode;i++) {
+        n+=sigma[i];
+    }
+
+    if(nnode*p<n) check=1;
+
+    return check;
+}
+
+void print_state(int* sigma, int nnode) {
     for(int i=0;i<nnode;i++) {
         printf("%d ",sigma[i]);
     }
@@ -50,14 +68,15 @@ static double order_parameter(int* sigma, int nnode) {
 }
 
 int main() {
-    double alpha=1.0;
+    double alpha=0.6;
     double gamma=1.0;
-    double dt=0.0001;
-    double T=10.0;
+    double dt=0.01;
+    double T=20.0;
     double p=0.05;
     int nif = 10;
     unsigned long int seed=9127933;
-    int nsample=1000;
+    int nblock=1000;
+    int block_size=1000;
     int nstep=(int)(T/dt);
     int nshow=(int)(0.25/dt);
 
@@ -71,37 +90,54 @@ int main() {
 
     double  infected_ratio=0;
     double* sigma_ave = (double*)malloc(sizeof(double)*nstep);
-    for(int i=0;i<nstep;i++) sigma_ave[i]=0;
+    double* temp_sigma = (double*)malloc(sizeof(double)*nstep);
+    for(int i=0;i<nstep;i++) {
+        sigma_ave[i]=0;
+        temp_sigma[i]=0;
+    }
 
-    int block_size=1000;
-    for(int k=0;k<nsample;k++){
+    for(int k=0;k<nblock;k++){
         int n;
         time_t start_time = clock();
         FILE* file_conf = fopen("conf.txt","a");
 
-        for(int i_block=0;i_block<block_size;i_block++) {
+        double ntrial_ave=0;
+        int ntrial=0;
+        for(int i_block=0;i_block<block_size;) {
             n=0;
             int* sigma = initial_state(nnode,p,nif,1,rng);
             if(i_block==(block_size-1))
                 save_state(file_conf,sigma,nnode);
 
             infected_ratio = order_parameter(sigma,nnode);
-            sigma_ave[n] += infected_ratio;
+            temp_sigma[n] = infected_ratio;
             n++;
             for(int i=0;i<nstep;i++) {
                 kernel_linear(alpha,gamma,dt,nnode,nedge,sigma,edges,rng);
                 if((i+1)%nshow==0) {
                     infected_ratio = order_parameter(sigma,nnode);
-                    sigma_ave[n] += infected_ratio;
+                    temp_sigma[n] = infected_ratio;
                     n++;
 
                     if(i_block==(block_size-1))
                         save_state(file_conf,sigma,nnode);
                 }
             }
+            
+            ntrial++;
+            if(final_state(nnode,sigma,0.25)) {
+                for(int j=0;j<n;j++) sigma_ave[j]+=temp_sigma[j];
 
-            ninfection_count_plus_one();
-            nrecover_count_plus_one();
+                ninfection_count_plus_one();
+                nrecover_count_plus_one();
+
+                printf("i_block = %d | trial = %d \n",i_block,ntrial);
+                ntrial_ave+=ntrial;
+                ntrial=0;
+
+                i_block++;
+            }
+
             free(sigma);
         }
 
@@ -123,7 +159,8 @@ int main() {
         printf("time for this block = %.2lf(sec)\n",(double)(end_time-start_time)/CLOCKS_PER_SEC);
         double ninfection = ninfection_ave_value();
         double nrecover = nrecover_ave_value();
-        fprintf(file_g,"%.12e %.12e\n",ninfection,nrecover);
+        ntrial_ave = ntrial_ave/block_size;
+        fprintf(file_g,"%.12e %.12e %.12e\n",ninfection,nrecover,ntrial_ave);
 
         print_ninfection();
         print_nrecover();
