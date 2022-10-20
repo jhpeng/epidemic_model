@@ -50,7 +50,7 @@ void print_state(int* sigma, int nnode) {
     printf("\n");
 }
 
-static void save_state(FILE* file, int* sigma, int nnode) {
+void save_state(FILE* file, int* sigma, int nnode) {
     for(int i=0;i<nnode;i++) {
         fprintf(file,"%d ",sigma[i]);
     }
@@ -74,11 +74,11 @@ int main(int argc, char** argv) {
     double T=atof(argv[4]);
     double p=atof(argv[5]);
     int nif = 10;
-    int nblock=atoi(argv[6]);
-    int block_size=atoi(argv[7]);
+    int block_size=atoi(argv[6]);
+    int nblock=atoi(argv[7]);
     unsigned long int seed=atoi(argv[8]);
     int nstep=(int)(T/dt);
-    int nshow=(int)(0.25/dt);
+    int nshow=(int)(1.0/dt);
 
     gsl_rng* rng=gsl_rng_alloc(gsl_rng_mt19937);
     gsl_rng_set(rng,seed);
@@ -97,17 +97,17 @@ int main(int argc, char** argv) {
     }
 
     for(int k=0;k<nblock;k++){
-        int n;
+        int n=0;
         time_t start_time = clock();
-        FILE* file_conf = fopen("conf.txt","a");
+        //FILE* file_conf = fopen("conf.txt","a");
 
         double ntrial_ave=0;
         int ntrial=0;
         for(int i_block=0;i_block<block_size;) {
             n=0;
             int* sigma = initial_state(nnode,p,nif,1,rng);
-            if(i_block==(block_size-1))
-                save_state(file_conf,sigma,nnode);
+            //if(i_block==(block_size-1))
+            //    save_state(file_conf,sigma,nnode);
 
             infected_ratio = order_parameter(sigma,nnode);
             temp_sigma[n] = infected_ratio;
@@ -119,8 +119,8 @@ int main(int argc, char** argv) {
                     temp_sigma[n] = infected_ratio;
                     n++;
 
-                    if(i_block==(block_size-1))
-                        save_state(file_conf,sigma,nnode);
+                    //if(i_block==(block_size-1))
+                    //    save_state(file_conf,sigma,nnode);
                 }
             }
             
@@ -165,7 +165,7 @@ int main(int argc, char** argv) {
         print_ninfection();
         print_nrecover();
 
-        fclose(file_conf);
+        //fclose(file_conf);
         fclose(file_t);
         fclose(file_s);
         fclose(file_g);
