@@ -78,13 +78,13 @@ int main(int argc, char** argv) {
     int block_size=atoi(argv[7]);
     unsigned long int seed=atoi(argv[8]);
     int nstep=(int)(T/dt);
-    int nshow=(int)(0.25/dt);
+    int nshow=nstep/100;
 
     gsl_rng* rng=gsl_rng_alloc(gsl_rng_mt19937);
     gsl_rng_set(rng,seed);
 
     int nnode,nedge;
-    char filename[128] = "/home/alan/Works/path_sampling/networks/jupyters/test.edgelist";
+    char filename[128] = "/hpc/home/jp549/src/ctQMC/C/projects/epidemic/network/test.edgelist";
     int* edges = read_edgelist(filename,&nnode,&nedge);
 
 
@@ -95,9 +95,11 @@ int main(int argc, char** argv) {
         sigma_ave[i]=0;
         temp_sigma[i]=0;
     }
+    int* conf = (int*)malloc(sizeof(int)*nnode*(nshow+1));
+    for(int i=0;i<(nnode*(nshow+1));i++) conf[i]=0;
 
     for(int k=0;k<nblock;k++){
-        int n;
+        int n=0;
         time_t start_time = clock();
         FILE* file_conf = fopen("conf.txt","a");
 
@@ -106,8 +108,11 @@ int main(int argc, char** argv) {
         for(int i_block=0;i_block<block_size;) {
             n=0;
             int* sigma = initial_state(nnode,p,nif,1,rng);
-            if(i_block==(block_size-1))
-                save_state(file_conf,sigma,nnode);
+
+            int i_show=0;
+            for(int i_node=0;i_node<nnode;i_node++)
+                conf[i_show*nnode+i_node]=sigma[i_node];
+            i_show++;
 
             infected_ratio = order_parameter(sigma,nnode);
             temp_sigma[n] = infected_ratio;
@@ -119,8 +124,10 @@ int main(int argc, char** argv) {
                     temp_sigma[n] = infected_ratio;
                     n++;
 
-                    if(i_block==(block_size-1))
-                        save_state(file_conf,sigma,nnode);
+                    for(int i_node=0;i_node<nnode;i_node++)
+                        conf[i_show*nnode+i_node]=sigma[i_node];
+
+                    i_show++;
                 }
             }
             
@@ -134,6 +141,9 @@ int main(int argc, char** argv) {
                 printf("i_block = %d | trial = %d \n",i_block,ntrial);
                 ntrial_ave+=ntrial;
                 ntrial=0;
+
+                for(i_show=0;i_show<(nshow+1);i_show++)
+                    save_state(file_conf,&(conf[i_show*nnode]),nnode);
 
                 i_block++;
             }
