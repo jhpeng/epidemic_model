@@ -50,7 +50,7 @@ void print_state(int* sigma, int nnode) {
     printf("\n");
 }
 
-static void save_state(FILE* file, int* sigma, int nnode) {
+void save_state(FILE* file, int* sigma, int nnode) {
     for(int i=0;i<nnode;i++) {
         fprintf(file,"%d ",sigma[i]);
     }
@@ -74,8 +74,8 @@ int main(int argc, char** argv) {
     double T=atof(argv[4]);
     double p=atof(argv[5]);
     int nif = 10;
-    int nblock=atoi(argv[6]);
-    int block_size=atoi(argv[7]);
+    int block_size=atoi(argv[6]);
+    int nblock=atoi(argv[7]);
     unsigned long int seed=atoi(argv[8]);
     int nstep=(int)(T/dt);
     int nshow=nstep/100;
@@ -175,7 +175,7 @@ int main(int argc, char** argv) {
         print_ninfection();
         print_nrecover();
 
-        fclose(file_conf);
+        //fclose(file_conf);
         fclose(file_t);
         fclose(file_s);
         fclose(file_g);
