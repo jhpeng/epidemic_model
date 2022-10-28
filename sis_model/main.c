@@ -7,9 +7,7 @@
 #include "graph.h"
 #include "time_evolution.h"
 
-static int* initial_state(int nnode, double p, int n, int type, gsl_rng* rng) {
-    int* sigma = (int*)malloc(sizeof(int)*nnode);
-
+static void initial_state(int* sigma, int nnode, double p, int n, int type, gsl_rng* rng) {
     if(type==0) {
         for(int i=0;i<nnode;i++) {
             sigma[i]=0;
@@ -24,11 +22,9 @@ static int* initial_state(int nnode, double p, int n, int type, gsl_rng* rng) {
         for(int i=0;i<nnode;i++) {
             sigma[i]=0;
         }
-        double dis=gsl_rng_uniform_pos(rng)*nnode;
-        sigma[(int)dis]=1;
+        int dis=(int)(gsl_rng_uniform_pos(rng)*nnode);
+        sigma[dis]=1;
     }
-
-    return sigma;
 }
 
 static int final_state(int nnode, int* sigma, double p) {
@@ -78,7 +74,8 @@ int main(int argc, char** argv) {
     int nblock=atoi(argv[7]);
     unsigned long int seed=atoi(argv[8]);
     int nstep=(int)(T/dt);
-    int nshow=nstep/100;
+    int conf_size=100;
+    int nshow=nstep/conf_size;
 
     gsl_rng* rng=gsl_rng_alloc(gsl_rng_mt19937);
     gsl_rng_set(rng,seed);
@@ -95,8 +92,9 @@ int main(int argc, char** argv) {
         sigma_ave[i]=0;
         temp_sigma[i]=0;
     }
-    int* conf = (int*)malloc(sizeof(int)*nnode*(nshow+1));
-    for(int i=0;i<(nnode*(nshow+1));i++) conf[i]=0;
+    int* sigma = (int*)malloc(sizeof(int)*nnode);
+    int* conf = (int*)malloc(sizeof(int)*nnode*(conf_size+1));
+    for(int i=0;i<(nnode*(conf_size+1));i++) conf[i]=0;
 
     for(int k=0;k<nblock;k++){
         int n=0;
@@ -107,7 +105,7 @@ int main(int argc, char** argv) {
         int ntrial=0;
         for(int i_block=0;i_block<block_size;) {
             n=0;
-            int* sigma = initial_state(nnode,p,nif,1,rng);
+            initial_state(sigma,nnode,p,nif,2,rng);
 
             int i_show=0;
             for(int i_node=0;i_node<nnode;i_node++)
@@ -142,13 +140,12 @@ int main(int argc, char** argv) {
                 ntrial_ave+=ntrial;
                 ntrial=0;
 
-                for(i_show=0;i_show<(nshow+1);i_show++)
+                for(i_show=0;i_show<(conf_size+1);i_show++)
                     save_state(file_conf,&(conf[i_show*nnode]),nnode);
 
                 i_block++;
             }
 
-            free(sigma);
         }
 
         time_t end_time = clock();
@@ -182,4 +179,5 @@ int main(int argc, char** argv) {
     }
 
     free(edges);
+    free(sigma);
 }
