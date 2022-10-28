@@ -172,7 +172,7 @@ int main(int argc, char** argv) {
         print_ninfection();
         print_nrecover();
 
-        //fclose(file_conf);
+        fclose(file_conf);
         fclose(file_t);
         fclose(file_s);
         fclose(file_g);
