@@ -34,7 +34,7 @@ static int final_state(int nnode, int* sigma, double p) {
         n+=sigma[i];
     }
 
-    if(nnode*p<n) check=1;
+    if((int)(nnode*p)<=n) check=1;
 
     return check;
 }
@@ -99,7 +99,6 @@ int main(int argc, char** argv) {
     for(int k=0;k<nblock;k++){
         int n=0;
         time_t start_time = clock();
-        FILE* file_conf = fopen("conf.txt","a");
 
         double ntrial_ave=0;
         int ntrial=0;
@@ -140,8 +139,11 @@ int main(int argc, char** argv) {
                 ntrial_ave+=ntrial;
                 ntrial=0;
 
+                FILE* file_conf = fopen("conf.txt","a");
                 for(i_show=0;i_show<(conf_size+1);i_show++)
                     save_state(file_conf,&(conf[i_show*nnode]),nnode);
+
+                fclose(file_conf);
 
                 i_block++;
             }
@@ -172,7 +174,6 @@ int main(int argc, char** argv) {
         print_ninfection();
         print_nrecover();
 
-        fclose(file_conf);
         fclose(file_t);
         fclose(file_s);
         fclose(file_g);
