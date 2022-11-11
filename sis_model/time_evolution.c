@@ -4,49 +4,16 @@
 #include <gsl/gsl_rng.h>
 
 
-static int ninfection_count=0;
-static double ninfection_ave=0;
-static int nrecover_count=0;
-static double nrecover_ave=0;
-
-void ninfection_count_plus_one() {
-    ninfection_count++;
-}
-
-void nrecover_count_plus_one() {
-    nrecover_count++;
-}
-
-double ninfection_ave_value() {
-    return ninfection_ave/ninfection_count;
-}
-
-double nrecover_ave_value() {
-    return nrecover_ave/nrecover_count;
-}
-
-void print_ninfection() {
-    ninfection_ave = ninfection_ave/ninfection_count;
-    printf("# of infection : %.12e \n", ninfection_ave);
-
-    ninfection_ave=0;
-    ninfection_count=0;
-}
-
-void print_nrecover() {
-    nrecover_ave = nrecover_ave/nrecover_count;
-    printf("# of recover : %.12e \n", nrecover_ave);
-
-    nrecover_ave=0;
-    nrecover_count=0;
-}
-
 static int kernel_count=0;
 static unsigned long int total_infected_time=0;
+static unsigned long int total_ninfection=0;
+static unsigned long int total_nrecover=0;
 static int* kernel_tiks=NULL;
 void kernel_init(int nnode) {
     kernel_count=0;
     total_infected_time=0;
+    total_ninfection=0;
+    total_nrecover=0;
     if(kernel_tiks==NULL) 
         kernel_tiks = (int*)malloc(sizeof(int)*nnode);
 
@@ -79,7 +46,7 @@ void kernel_linear(double alpha, double gamma, double dt, int nnode, int nedge, 
             }
         }
     }
-    ninfection_ave += (double)ninfection;
+    total_ninfection += ninfection;
 
     int nrecover=0;
     for(i_node=0;i_node<nnode;i_node++) {
@@ -92,7 +59,7 @@ void kernel_linear(double alpha, double gamma, double dt, int nnode, int nedge, 
             }
         }
     }
-    nrecover_ave += (double)nrecover;
+    total_nrecover += nrecover;
     kernel_count++;
 }
 
@@ -103,6 +70,14 @@ void kernel_close(int nnode, int* sigma) {
     }
 }
 
-double kernel_total_infected_time(double dt) {
-    return ((double)total_infected_time)*dt;
+double total_infected_time_value() {
+    return (double)total_infected_time;
+}
+
+double total_ninfection_value() {
+    return (double)total_ninfection;
+}
+
+double total_nrecover_value() {
+    return (double)total_nrecover;
 }

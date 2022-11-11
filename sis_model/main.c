@@ -101,6 +101,8 @@ int main(int argc, char** argv) {
         time_t start_time = clock();
 
         double total_infected_time_ave=0;
+        double total_ninfection_ave=0;
+        double total_nrecover_ave=0;
         double ntrial_ave=0;
         int ntrial=0;
         for(int i_block=0;i_block<block_size;) {
@@ -135,14 +137,13 @@ int main(int argc, char** argv) {
             if(final_state(nnode,sigma,p)) {
                 for(int j=0;j<n;j++) sigma_ave[j]+=temp_sigma[j];
 
-                ninfection_count_plus_one();
-                nrecover_count_plus_one();
-
-                printf("i_block = %d | trial = %d \n",i_block,ntrial);
+                //printf("i_block = %d | trial = %d \n",i_block,ntrial);
                 ntrial_ave+=ntrial;
                 ntrial=0;
 
-                total_infected_time_ave += kernel_total_infected_time(dt);
+                total_infected_time_ave += total_infected_time_value()*dt;
+                total_ninfection_ave += total_ninfection_value();
+                total_nrecover_ave += total_nrecover_value();
 
                 FILE* file_conf = fopen("conf.txt","a");
                 for(i_show=0;i_show<(conf_size+1);i_show++)
@@ -171,14 +172,19 @@ int main(int argc, char** argv) {
         fprintf(file_t,"\n");
         fprintf(file_s,"\n");
         printf("time for this block = %.2lf(sec)\n",(double)(end_time-start_time)/CLOCKS_PER_SEC);
-        double ninfection = ninfection_ave_value();
-        double nrecover = nrecover_ave_value();
+
+        // computing the average value
         ntrial_ave = ntrial_ave/block_size;
         total_infected_time_ave = total_infected_time_ave/block_size;
-        fprintf(file_g,"%.12e %.12e %.12e %.12e\n",ninfection,nrecover,total_infected_time_ave,ntrial_ave);
+        total_ninfection_ave = total_ninfection_ave/block_size;
+        total_nrecover_ave = total_nrecover_ave/block_size;
 
-        print_ninfection();
-        print_nrecover();
+        // saving to the file
+        fprintf(file_g,"%.12e %.12e %.12e %.12e\n"
+            ,total_ninfection_ave
+            ,total_nrecover_ave
+            ,total_infected_time_ave
+            ,ntrial_ave);
 
         fclose(file_t);
         fclose(file_s);
