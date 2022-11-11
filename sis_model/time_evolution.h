@@ -15,6 +15,8 @@ void print_ninfection();
 
 void print_nrecover();
 
+void kernel_init(int nnode);
+
 void kernel_linear(double alpha, double gamma, double dt, int nnode, int nedge, int* sigma, int* edges, gsl_rng* rng);
 
 /** alpha : transmition rate
@@ -26,5 +28,9 @@ void kernel_linear(double alpha, double gamma, double dt, int nnode, int nedge, 
 *** edges : list of edge
 ***   rng : random number generator
 **/
+
+void kernel_close(int nnode, int* sigma);
+
+double kernel_total_infected_time(double dt);
 
 #endif

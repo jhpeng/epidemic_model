@@ -100,11 +100,13 @@ int main(int argc, char** argv) {
         int n=0;
         time_t start_time = clock();
 
+        double total_infected_time_ave=0;
         double ntrial_ave=0;
         int ntrial=0;
         for(int i_block=0;i_block<block_size;) {
             n=0;
             initial_state(sigma,nnode,p,nif,2,rng);
+            kernel_init(nnode);
 
             int i_show=0;
             for(int i_node=0;i_node<nnode;i_node++)
@@ -127,6 +129,7 @@ int main(int argc, char** argv) {
                     i_show++;
                 }
             }
+            kernel_close(nnode,sigma);
             
             ntrial++;
             if(final_state(nnode,sigma,p)) {
@@ -138,6 +141,8 @@ int main(int argc, char** argv) {
                 printf("i_block = %d | trial = %d \n",i_block,ntrial);
                 ntrial_ave+=ntrial;
                 ntrial=0;
+
+                total_infected_time_ave += kernel_total_infected_time(dt);
 
                 FILE* file_conf = fopen("conf.txt","a");
                 for(i_show=0;i_show<(conf_size+1);i_show++)
@@ -169,7 +174,8 @@ int main(int argc, char** argv) {
         double ninfection = ninfection_ave_value();
         double nrecover = nrecover_ave_value();
         ntrial_ave = ntrial_ave/block_size;
-        fprintf(file_g,"%.12e %.12e %.12e\n",ninfection,nrecover,ntrial_ave);
+        total_infected_time_ave = total_infected_time_ave/block_size;
+        fprintf(file_g,"%.12e %.12e %.12e %.12e\n",ninfection,nrecover,total_infected_time_ave,ntrial_ave);
 
         print_ninfection();
         print_nrecover();
