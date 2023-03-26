@@ -11,4 +11,6 @@ int* read_edgelist(char* filename, int* nnode, int* nedge);
 ***   return : a list of edge
 ***/
 
+int* kinship_graphs_generator(int* nnode, int* nedge, int N, double rho, gsl_rng* rng);
+
 #endif
