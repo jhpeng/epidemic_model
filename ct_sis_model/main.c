@@ -56,7 +56,7 @@ int main(int argc, char* argv[]) {
     gsl_rng* rng = gsl_rng_alloc(gsl_rng_mt19937);
     gsl_rng_set(rng,seed);
 
-    for(int i_sample; i_sample<nsample; i_sample++) {
+    for(int i_sample=0; i_sample<nsample; i_sample++) {
     int nnode,nedge;
 
     int* edges = kinship_graphs_generator(&nnode, &nedge, N, rho, rng);
