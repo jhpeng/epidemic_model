@@ -20,8 +20,8 @@ int random_integer_with_distribution(const gsl_rng *rng, double *weight_dist, do
     return len-1;
 }
 
-int* kernel_uniform_recover_list = NULL;
-int* kernel_uniform_infected_list = NULL;
+static int* kernel_uniform_recover_list = NULL;
+static int* kernel_uniform_infected_list = NULL;
 int kernel_uniform_scan(double alpha, double gamma, double* dt, int nnode, int nedge, const int* sigma, const int* edges, int* propose, gsl_rng* rng) {
     int nr=0;
     int ni=0;
@@ -29,10 +29,18 @@ int kernel_uniform_scan(double alpha, double gamma, double* dt, int nnode, int n
 
     if(kernel_uniform_recover_list==NULL) {
         kernel_uniform_recover_list = (int*)malloc(sizeof(int)*nnode);
+        if (kernel_uniform_recover_list == NULL) {
+            fprintf(stderr, "Error: failed to allocate memory for kernel_uniform_recover_list.\n");
+            exit(EXIT_FAILURE);
+        }
     }
 
     if(kernel_uniform_infected_list==NULL) {
         kernel_uniform_infected_list = (int*)malloc(sizeof(int)*nedge);
+        if (kernel_uniform_infected_list == NULL) {
+            fprintf(stderr, "Error: failed to allocate memory for kernel_uniform_infected_list.\n");
+            exit(EXIT_FAILURE);
+        }
     }
 
     for(int i=0; i<nnode; i++) {
