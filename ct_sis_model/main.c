@@ -15,11 +15,12 @@ int main(int argc, char* argv[]) {
     double gamma = 1.0;
     double initial_ratio = 0.5; 
     double T = 100;
+    int nsample = 1000;
     unsigned long int seed = 0;
 
 
     int opt;
-    while ((opt = getopt(argc, argv, "N:r:a:g:i:T:s:")) != -1) { // Fixed option string
+    while ((opt = getopt(argc, argv, "N:r:a:g:i:T:n:s:")) != -1) { // Fixed option string
         switch (opt) {
             case 'N':
                 N = atoi(optarg);
@@ -39,6 +40,9 @@ int main(int argc, char* argv[]) {
             case 'T':
                 T = atof(optarg);
                 break;
+            case 'n':
+                nsample = atoi(optarg);
+                break;
             case 's':
                 seed = strtoul(optarg, NULL, 0);
                 break;
@@ -52,7 +56,7 @@ int main(int argc, char* argv[]) {
     gsl_rng* rng = gsl_rng_alloc(gsl_rng_mt19937);
     gsl_rng_set(rng,seed);
 
-    while(1) {
+    for(int i_sample; i_sample<nsample; i_sample++) {
     int nnode,nedge;
 
     int* edges = kinship_graphs_generator(&nnode, &nedge, N, rho, rng);
@@ -85,16 +89,27 @@ int main(int argc, char* argv[]) {
         if(current_time<T) kernel_update(np, propose, sigma);
     }
 
-    double infected_ratio=0;
+    int infected_number=0;
     for(int i=0; i<nnode; i++) {
-        infected_ratio += sigma[i];
+        infected_number += sigma[i];
     }
-    infected_ratio = infected_ratio/nnode;
 
     end = clock();
     cpu_time_used = ((double) (end - start)) / CLOCKS_PER_SEC;
 
-    printf("N=%d rho=%.4f beta=%.6f alpha=%.4f if=%.10f t=%f\n", N,rho,beta,alpha,infected_ratio,cpu_time_used);
+    printf("N=%d rho=%.4f beta=%.6f alpha=%.4f if=%d t=%f\n", N,rho,beta,alpha,infected_number,cpu_time_used);
+
+    FILE* beta_file = fopen("beta.dat","a");
+    FILE* if_file = fopen("infected_number.dat","a");
+    FILE* cput_file = fopen("cpu_time_used.dat","a");
+
+    fprintf(beta_file,"%.12f \n", beta);
+    fprintf(if_file,"%d \n", infected_number);
+    fprintf(cput_file,"%.4f \n", cpu_time_used);
+
+    fclose(beta_file);
+    fclose(if_file);
+    fclose(cput_file);
 
     free(sigma);
     free(propose);
