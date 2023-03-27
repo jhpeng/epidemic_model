@@ -5,6 +5,10 @@
 
 int random_integer_with_distribution(const gsl_rng *rng, double *weight_dist, double total_weight, int len);
 
-void kernel_uniform(double alpha, double gamma, double* dt, int nnode, int nedge, int* sigma, int* edges, gsl_rng* rng);
+int kernel_uniform_scan(double alpha, double gamma, double* dt, int nnode, int nedge, const int* sigma, const int* edges, int* propose, gsl_rng* rng);
+
+void kernel_update(int np, const int* propose, int* sigma);
+
+void kernel_free();
 
 #endif
