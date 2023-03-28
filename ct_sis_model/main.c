@@ -93,6 +93,7 @@ int main(int argc, char* argv[]) {
     for(int i=0; i<nnode; i++) {
         infected_number += sigma[i];
     }
+    if(infected_number==0) i_sample--;
 
     end = clock();
     cpu_time_used = ((double) (end - start)) / CLOCKS_PER_SEC;
