@@ -140,6 +140,12 @@ int main(int argc, char* argv[]) {
     fprintf(beta_file, "%.12f \n", beta);
     fclose(beta_file);
 
+    FILE* edge_file = (FILE*)fopen("edges.dat","a");
+    for(int i=0; i<nedge; i++) {
+        fprintf(edge_file, "%d %d \n", edges[i*2],edges[i*2+1]);
+    }
+    fclose(edge_file);
+
     free(edges);
     gsl_rng_free(rng);
     return 0;
