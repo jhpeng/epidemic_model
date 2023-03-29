@@ -1,6 +1,18 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+/**
+ * @brief Appends an edge to the edges list, and resizes the memory if necessary.
+ *
+ * This function appends an edge (i, j) to the given edges list, reallocating memory in
+ * chunks of buffer size if needed.
+ *
+ * @param edges Pointer to the integer array representing the edge list.
+ * @param nedge Pointer to the integer representing the number of edges.
+ * @param i The first node of the edge to be added.
+ * @param j The second node of the edge to be added.
+ * @return The updated edges list with the new edge appended.
+ */
 static int* append_edge(int* edges, int* nedge, int i, int j) {
     int buffer=1024;
     int n = *nedge;
