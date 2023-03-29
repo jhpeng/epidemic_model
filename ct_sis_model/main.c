@@ -8,6 +8,47 @@
 #include "graphs.h"
 #include "kernel.h"
 
+/**
+ * @brief Calculates the mean of an array of doubles (static function).
+ *
+ * This static function computes the mean (average) value of a given sequence of doubles. If the length is less than or equal to zero,
+ * the function returns zero.
+ *
+ * @note This function is static and can only be used within the translation unit (source file) it is defined in.
+ *
+ * @param sequence Pointer to an array of doubles representing the input sequence.
+ * @param length The length of the input sequence.
+ * @return The mean value of the input sequence, or 0.0 if the length is less than or equal to zero.
+ */
+static double mean(double* sequence, int length) {
+    if (length <= 0) {
+        return 0.0; 
+    }
+
+    double mean_value=0;
+    for(int i=0; i<length; i++) {
+        mean_value += sequence[i];
+    }
+
+    return mean_value/length;
+}
+
+/**
+ * @brief Performs quasistationary state sampling for an epidemic process.
+ *
+ * This function performs quasistationary state sampling for an epidemic process, calculating the infected ratio,
+ * infected ratio squared, and number of trials. It stores these values in separate output files.
+ *
+ * @param edges Pointer to an array of edge pairs representing the network connections.
+ * @param nnode The total number of nodes in the network.
+ * @param nedge The total number of edges in the network.
+ * @param alpha The alpha parameter for the epidemic model.
+ * @param gamma The gamma parameter for the epidemic model.
+ * @param t The time threshold for the sampling process.
+ * @param nsample The number of samples to be generated.
+ * @param rng Pointer to a GSL random number generator.
+ */
+
 void quasistationary_state_sampling(const int* edges, int nnode, int nedge, double alpha, double gamma, double t, int nsample, gsl_rng* rng) {
     int* sigma     = (int*)malloc(sizeof(int)*nnode);
     int* sigma_p   = (int*)malloc(sizeof(int)*nnode);
@@ -18,10 +59,10 @@ void quasistationary_state_sampling(const int* edges, int nnode, int nedge, doub
         sigma_p[i]=1;
     }
 
-    FILE* if_file = fopen("infected_number.dat","a");
-    FILE* if2_file = fopen("infected_number_2.dat","a");
-    FILE* cput_file = fopen("cpu_time_used.dat","a");
-    FILE* nt_file = fopen("number_trial_run.dat","a");
+    int length = 1000;
+    double* infected_ratio_sequence = (double*)malloc(sizeof(double)*length);
+    double* infected_ratio2_sequence = (double*)malloc(sizeof(double)*length);
+    double* number_trial_sequence = (double*)malloc(sizeof(double)*length);
 
 
     clock_t start, end;
@@ -53,31 +94,51 @@ void quasistationary_state_sampling(const int* edges, int nnode, int nedge, doub
             }
             i_sample--;
         } else {
-            end = clock();
-            cpu_time_used = ((double) (end - start)) / CLOCKS_PER_SEC;
             double inf2 = ((double)infected_number)*((double)infected_number);
 
-            printf("if=%d if2=%.12e t=%f ntrial=%d\n", infected_number, inf2, cpu_time_used, ntrial);
+            infected_ratio_sequence[i_sample%length] = ((double)infected_number);
+            infected_ratio2_sequence[i_sample%length] = inf2;
+            number_trial_sequence[i_sample%length] = ntrial;
 
-            fprintf(if_file,"%d \n", infected_number);
-            fprintf(if2_file,"%.12e \n", inf2);
-            fprintf(cput_file,"%.4f \n", cpu_time_used);
-            fprintf(nt_file,"%d \n", ntrial);
+            if((i_sample+1)%length==0) {
+                end = clock();
+                cpu_time_used = ((double) (end - start)) / CLOCKS_PER_SEC;
 
-            start = clock();
+                double infected_ratio_mean = mean(infected_ratio_sequence,length)/nnode;
+                double infected_ratio2_mean = mean(infected_ratio2_sequence,length)/nnode/nnode;
+                double number_trial_mean = mean(number_trial_sequence,length);
+
+                printf("inf=%.12e inf2=%.12e ntrial=%.12e cpu_time=%.4f\n", infected_ratio_mean, infected_ratio2_mean, number_trial_mean, cpu_time_used);
+
+                FILE* if_file = fopen("infected_ratio.dat","a");
+                FILE* if2_file = fopen("infected_ratio2.dat","a");
+                FILE* cput_file = fopen("cpu_time_used.dat","a");
+                FILE* nt_file = fopen("number_trial_run.dat","a");
+
+                fprintf(if_file,"%.12e \n", infected_ratio_mean);
+                fprintf(if2_file,"%.12e \n", infected_ratio2_mean);
+                fprintf(cput_file,"%.4f \n", cpu_time_used);
+                fprintf(nt_file,"%.12e \n", number_trial_mean);
+
+                fclose(if_file);
+                fclose(if2_file);
+                fclose(cput_file);
+                fclose(nt_file);
+
+                start = clock();
+            }
+
             ntrial=0;
         }
     }
-
-    fclose(if_file);
-    fclose(if2_file);
-    fclose(cput_file);
-    fclose(nt_file);
 
 
     free(sigma);
     free(sigma_p);
     free(propose);
+    free(infected_ratio_sequence);
+    free(infected_ratio2_sequence);
+    free(number_trial_sequence);
     kernel_free();
 }
 
