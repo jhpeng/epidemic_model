@@ -49,20 +49,17 @@ static double mean(double* sequence, int length) {
  * @param rng Pointer to a GSL random number generator.
  */
 
-void quasistationary_state_sampling(const int* edges, int nnode, int nedge, double alpha, double gamma, double t, int nsample, gsl_rng* rng) {
-    int* sigma     = (int*)malloc(sizeof(int)*nnode);
-    int* sigma_p   = (int*)malloc(sizeof(int)*nnode);
-    int* propose   = (int*)malloc(sizeof(int)*nnode);
+void qs_sampling_largeTlimit(const int* edges, int nnode, int nedge, double alpha, double gamma, double ir, double t, int nsample, gsl_rng* rng) {
+    int* sigma   = (int*)malloc(sizeof(int)*nnode);
+    int* propose = (int*)malloc(sizeof(int)*nnode);
 
     for(int i=0; i<nnode; i++) {
-        sigma[i]=1;
-        sigma_p[i]=1;
+        if(gsl_rng_uniform_pos(rng)<ir) {
+            sigma[i] = 1;
+        } else {
+            sigma[i] = 0;
+        }
     }
-
-    int length = 1000;
-    double* infected_ratio_sequence = (double*)malloc(sizeof(double)*length);
-    double* infected_ratio2_sequence = (double*)malloc(sizeof(double)*length);
-    double* number_trial_sequence = (double*)malloc(sizeof(double)*length);
 
 
     clock_t start, end;
@@ -90,55 +87,29 @@ void quasistationary_state_sampling(const int* edges, int nnode, int nedge, doub
         ntrial++;
         if(infected_number==0) {
             for(int i=0; i<nnode; i++) {
-                sigma[i] = sigma_p[i];
+                if(gsl_rng_uniform_pos(rng)<ir) {
+                    sigma[i] = 1;
+                } else {
+                    sigma[i] = 0;
+                }
             }
             i_sample--;
         } else {
-            double inf2 = ((double)infected_number)*((double)infected_number);
+            end = clock();
+            cpu_time_used = (double)(end-start)/CLOCKS_PER_SEC;
 
-            infected_ratio_sequence[i_sample%length] = ((double)infected_number);
-            infected_ratio2_sequence[i_sample%length] = inf2;
-            number_trial_sequence[i_sample%length] = ntrial;
+            FILE* sampling_file = fopen("sampling_data.txt","a");
+            printf("%d %d %d %lf \n", i_sample, ntrial, infected_number, cpu_time_used);
+            fprintf(sampling_file, "%d %d %lf \n", ntrial, infected_number, cpu_time_used);
 
-            if((i_sample+1)%length==0) {
-                end = clock();
-                cpu_time_used = ((double) (end - start)) / CLOCKS_PER_SEC;
+            fclose(sampling_file);
 
-                double infected_ratio_mean = mean(infected_ratio_sequence,length)/nnode;
-                double infected_ratio2_mean = mean(infected_ratio2_sequence,length)/nnode/nnode;
-                double number_trial_mean = mean(number_trial_sequence,length);
-
-                printf("inf=%.12e inf2=%.12e ntrial=%.12e cpu_time=%.4f\n", infected_ratio_mean, infected_ratio2_mean, number_trial_mean, cpu_time_used);
-
-                FILE* if_file = fopen("infected_ratio.dat","a");
-                FILE* if2_file = fopen("infected_ratio2.dat","a");
-                FILE* cput_file = fopen("cpu_time_used.dat","a");
-                FILE* nt_file = fopen("number_trial_run.dat","a");
-
-                fprintf(if_file,"%.12e \n", infected_ratio_mean);
-                fprintf(if2_file,"%.12e \n", infected_ratio2_mean);
-                fprintf(cput_file,"%.4f \n", cpu_time_used);
-                fprintf(nt_file,"%.12e \n", number_trial_mean);
-
-                fclose(if_file);
-                fclose(if2_file);
-                fclose(cput_file);
-                fclose(nt_file);
-
-                start = clock();
-            }
-
+            start = clock();
             ntrial=0;
         }
     }
 
-
     free(sigma);
-    free(sigma_p);
-    free(propose);
-    free(infected_ratio_sequence);
-    free(infected_ratio2_sequence);
-    free(number_trial_sequence);
     kernel_free();
 }
 
@@ -195,7 +166,7 @@ int main(int argc, char* argv[]) {
     int* edges = kinship_graphs_generator(&nnode, &nedge, N, rho, rng);
     double beta = ((double)(nedge*2))/nnode;
 
-    quasistationary_state_sampling(edges, nnode, nedge, alpha, gamma, T, nsample, rng) ;
+    qs_sampling_largeTlimit(edges, nnode, nedge, alpha, gamma, initial_ratio, T, nsample, rng) ;
 
     FILE* beta_file = (FILE*)fopen("ave_number_edge_per_node.dat","a");
     fprintf(beta_file, "%.12f \n", beta);
