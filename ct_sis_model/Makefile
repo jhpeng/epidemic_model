@@ -5,8 +5,9 @@
 CC	= gcc
 
 # define any compile-time flags
-CFLAGS = -Wall -g -fPIC -O0 -std=c99
-#CFLAGS = -Wall -fPIC -O3 -std=c99
+#CFLAGS = -Wall -g -fPIC -O0 -std=c99
+#CFLAGS = -Wall -g -pg -fPIC -O0 -std=c99
+CFLAGS = -Wall -fPIC -O3 -std=c99
 
 # define openmp flags
 OPENMP  = -fopenmp
@@ -37,6 +38,9 @@ MAIN	= exe
 
 exe: $(OBJS)
 	$(CC) $(CFLAGS) -o $(MAIN) $(OBJS) $(LIBS) $(LFLAGS) $(INCLUDES) 
+
+graphs: graphs.o
+	$(CC) $(CFLAGS) -o graphs graphs.o $(LIBS) $(LFLAGS) $(INCLUDES) 
 
 %.o: %.c
 	$(CC) $(CFLAGS) $(INCLUDES) -c $^

@@ -66,8 +66,8 @@ void qs_sampling_memory(const int* edges, int nnode, int nedge, double alpha, do
 
     double pr = 0.01;
     double dt = 0.0;
-    int np=0;
-    int nreject=0;
+    int np = 0;
+    int nreject = 0;
     int nthermal = M*1000;
     for(int i_thermal=0; i_thermal<nthermal;) {
         dt = 0;
@@ -95,7 +95,18 @@ void qs_sampling_memory(const int* edges, int nnode, int nedge, double alpha, do
 
             if((i_thermal+1)%100==0) {
                 double percentage = (double)(i_thermal+1)*100/nthermal;
-                printf("%lf ( %d %d) \n",percentage, nreject, infected_number);
+
+                end = clock();
+                cpu_time_used = (double)(end-start)/CLOCKS_PER_SEC;
+
+                double est_time = 0;
+                if(percentage<0.1) {
+                    est_time = 0;
+                } else {
+                    est_time = cpu_time_used/percentage*(100-percentage);
+                }
+                
+                printf("%lf ( %d %d) est: %.2f s\n",percentage, nreject, infected_number, est_time);
             }
             i_thermal++;
             nreject=0;
