@@ -126,20 +126,47 @@ int* kinship_graphs_generator(int* nnode, int* nedge, int N, double rho, gsl_rng
     return edges;
 }
 
-#ifdef test_graph_c
+#if 0
 int main() {
+    int N=10000;
+    double rho=1.0;
+    int nsample=10000;
+
     int nnode,nedge;
-    char filename[128] = "../../networks/jupyters/test.edgelist";
-    int* edges = read_edgelist(filename,&nnode,&nedge);
+    gsl_rng* rng = gsl_rng_alloc(gsl_rng_mt19937);
+    gsl_rng_set(rng,33798743);
 
-    for(int i=0;i<nedge;i++) {
-        printf("%d %d \n",edges[2*i],edges[2*i+1]);
+    double k1_mean=0;
+    double k2_mean=0;
+
+    for(int i=0; i<nsample;i++) {
+        int* edges  =  kinship_graphs_generator(&nnode, &nedge, N, rho, rng);
+        int* degree = (int*)malloc(sizeof(int)*nnode);
+        for(int j=0;j<nnode;j++) degree[j]=0;
+
+        for(int j=0;j<nedge;j++) {
+            degree[edges[j*2+0]]++;
+            degree[edges[j*2+1]]++;
+        }
+
+        double k1=0;
+        double k2=0;
+        for(int j=0;j<nnode;j++) {
+            k1+=degree[j];
+            k2+=degree[j]*degree[j];
+        }
+        k1_mean += k1/nnode;
+        k2_mean += k2/nnode;
+
+        free(degree);
+        free(edges);
     }
+    k1_mean = k1_mean/nsample;
+    k2_mean = k2_mean/nsample;
 
-    printf("nnode=%d nedge=%d \n",nnode,nedge);
+    printf("k1=%.8f k2=%.8f k1/k2=%.8f\n",k1_mean,k2_mean,k1_mean/k2_mean);
 
-    free(edges);
-
+    gsl_rng_free(rng);
     return 0;
 }
 #endif
